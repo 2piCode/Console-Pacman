@@ -1,3 +1,1 @@
-﻿  Source.cpp
-C:\Users\Admin\source\repos\PACMAN\PACMAN\Source.cpp(199,12): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
-  PACMAN.vcxproj -> C:\Users\Admin\source\repos\PACMAN\Debug\PACMAN.exe
+﻿LINK : fatal error LNK1168: не удается открыть C:\Users\Admin\source\repos\PACMAN\Debug\PACMAN.exe для записи

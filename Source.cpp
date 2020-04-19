@@ -10,40 +10,37 @@ using namespace std;
 
 HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
-bool deth;
+bool lose, win;
 
 int second = 0, hour = 0, minute = 0;
 
-const int size_map_y = 25;
-const int size_map_x = 50;
+const int size_map_y = 22;
+const int size_map_x = 26;
 int score = 0;
-int num_coin;
+int num_coin = 187;
 char map[size_map_y][size_map_x]{
-"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",//0
-"B'''''''''''''''''''''''B'''''''''''''''''''''''B",//1
-"B'''BBBBB'''BBBBBBBBB'''B'''BBBBBBBBB'''BBBBB'''B",//2
-"B'''BBBBB'''BBBBBBBBB'''B'''BBBBBBBBB'''BBBBB'''B",//3
-"B'''BBBBB'''BBBBBBBBB'''B'''BBBBBBBBB'''BBBBB'''B",//4
-"B'''''''''''''''''''''''''''''''''''''''''''''''B",//5
-"B'''BBBBB'''B'''BBBBBBBBBBBBBBBBB'''B'''BBBBB'''B",//6
-"B''''''''''''B''''''''''B'''''''''''B'''''''''''B",//7
-"BBBBBBBBB'''BBBBBBBBB   B   BBBBBBBBB'''BBBBBBBBB",//8
-"BBBBBBBBB'''B'''''''''''''''''''''''B'''BBBBBBBBB",//9
-"BBBBBBBBB'''B'''BBBBBB-----BBBBBB'''B'''BBBBBBBBB",//10
-"BBBBBBBBB'''B'''B               B'''B'''BBBBBBBBB",//11
-"''''''''''''''''B    Z N L M    B''''''''''''''''",//12
-"BBBBBBBBB'''B'''B               B'''B'''BBBBBBBBB",//13
-"BBBBBBBBB'''B'''BBBBBBBBBBBBBBBBB'''B'''BBBBBBBBB",//14
-"BBBBBBBBB'''B'''''''''''''''''''''''B'''BBBBBBBBB",//15
-"BBBBBBBBB'''B'''BBBBBBBBBBBBBBBBB'''B'''BBBBBBBBB",//16
-"B'''''''''''''''''''''''B'''''''''''''''''''''''B",//17
-"B'''B'B'B'''BBBBBBBBB'''B'''BBBBBBBBB'''BBBBB'''B",//18
-"B'''''''B'''''''''''''''''''''''''''''''B'''''''B",//19
-" BBB'''B'''B'''BBBBBBBBBBBBBBBBB'''B'''B'''BBBBB ",//20
-"B'''''''''''B'''''''''''B'''''''''''B'''''''''''B",//21
-"B'''BBBBBBBBBBBBBBBBB'''B'''BBBBBBBBBBBBBBBBB'''B",//22
-"B'''''''''''''''''''''''''''''''''''''''''''''''B",//23
-"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"//24
+"BBBBBBBBBBBBBBBBBBBBBBBBB",//0					
+"B'''''''''''B'''''''''''B",//1					
+"B'BBB'BBBBB'B'BBBBB'BBB'B",//2					
+"B'BBB'BBBBB'B'BBBBB'BBB'B",//3					
+"B'''''''''''''''''''''''B",//4					
+"B'BBB'B'BBBBBBBBB'B'BBB'B",//5					
+"B'''''B'''''B'''''B'''''B",//6					
+"BBBBB'BBBB  B  BBBB'BBBBB",//7					
+"    B'B           B'B   ",//8					
+"BBBBB'B  BB---BB  B'BBBBB",//9					
+"     '   B ZNM B   '     ",//10				
+"BBBBB'B  BBBBBBB  B'BBBBB",//11				
+"    B'B           B'B    ",//12			
+"BBBBB'B  BBBBBBB  B'BBBBB",//13			
+"B'''''''''''B'''''''''''B",//14		
+"B'BBB'BBBBB'B'BBBBB'BBB'B",//15			
+"B'''B'''''''''''''''B'''B",//16		
+"BBB'B'B''BBBBBBB''B'B'BBB",//17			
+"B'''''B'''''B'''''B'''''B",//18		
+"B'BBBBBBBB''B''BBBBBBBB'B",//19		
+"B'''''''''''''''''''''' B",//20		
+"BBBBBBBBBBBBBBBBBBBBBBBBB",//21		
 };
 
 enum Motion {
@@ -57,8 +54,8 @@ enum Motion {
 Motion pacman_motion;
 
 struct Pacman {
-	int x = 47;
-	int y = 23;
+	int x;
+	int y;
 };
 
 struct Fruit {
@@ -66,19 +63,26 @@ struct Fruit {
 	int y;
 };
 
+struct Enemy {
+	int x;
+	int y;
+};
+
 Pacman pacman;
 Fruit fruit;
+Enemy z, n, m;
 
 void setup() {
-	deth = false;
+	lose = false;
+	win = false;
 	pacman_motion = STOP;
-	pacman.x = 47;
-	pacman.y = 23;
+	pacman.x = 23;
+	pacman.y = 20;
 	fruit.x = rand() % (size_map_x);
 	fruit.y = rand() % (size_map_y);
 	for (size_t i = 0; i < size_map_y; i++) {
-		for (size_t j = 0; j < size_map_x; j++) {
-			while ((fruit.y == i and fruit.x == j and map[i][j] == 'B') or (fruit.y == i and fruit.x == j and map[i][j] == 'Z')) {
+		for (size_t j = 0; j < (size_map_x - 1); j++) {
+			while ((fruit.y == i and fruit.x == j and map[i][j] == 'B') or (fruit.y == i and fruit.x == j and map[i][j] == 'Z') /*or (fruit.y == l and fruit.x == n and map[l][n] == ' ')*/) {
 				fruit.x = rand() % (size_map_x - 1);
 				fruit.y = rand() % size_map_y;
 			}
@@ -94,7 +98,7 @@ void draw_timer_score() {
 	minute = timeinfo->tm_min;
 	second = timeinfo->tm_sec;
 	SetConsoleTextAttribute(hStdOut, FOREGROUND_RED);
-	cout << "Time: " << hour << " : " << minute << " : " << second << "\tScore: " << score << endl;
+	cout << "Time: " << hour << " : " << minute << " : " << second << "\tCollected " << score << " of 187" << "\tLeft: " << num_coin << endl;
 }
 
 void drawMap() {
@@ -112,13 +116,9 @@ void drawMap() {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_RED);
 				cout << "N";
 			}
-			else if (map[i][j] == 'L') {
+			else if (map[i][j] == 'M') {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_RED);
 				cout << "L";
-			}
-			else if (map[i][j] == 'M') {
-				SetConsoleTextAttribute(hStdOut, FOREGROUND_INTENSITY | FOREGROUND_RED);
-				cout << "M";
 			}
 			else if (i == fruit.y and j == fruit.x) {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_GREEN);
@@ -221,33 +221,57 @@ void logic() {
 		}
 		break;
 	}
-
 	}
+	
 	if (pacman.x == fruit.x and pacman.y == fruit.y) {
-		score++;
 		fruit.x = rand() % size_map_x;
 		fruit.y = rand() % size_map_y;
 	}
 	for (size_t i = 0; i < size_map_y; i++) {
-		for (size_t j = 0; j < size_map_x; j++) {
-			while ((fruit.y == i and fruit.x == j and map[i][j] == 'B') or (fruit.y == i and fruit.x == j and map[i][j] == 'Z')) {
+		for (size_t j = 0; j < (size_map_x - 1); j++) {
+			while ((fruit.y == i and fruit.x == j and map[i][j] == 'B') or (fruit.y == i and fruit.x == j and map[i][j] == '-') /*or (fruit.y == l and fruit.x == n and map[l][n] == ' ')*/) {
 				fruit.x = rand() % (size_map_x - 1);
 				fruit.y = rand() % size_map_y;
 			}
 		}
 	}
+	if (pacman.x == 0 and pacman.y == 10) {
+		pacman.x = 24;
+		map[10][0] = ' ';
+	}
+	else if (pacman.x == 24 and pacman.y == 10) {
+		pacman.x = 1;
+		map[10][24] = ' ';
+	}
+	for (size_t i = 0; i < size_map_y; i++) {
+		for (size_t j = 0; j < size_map_x; j++) {
+			if (pacman.y == i and pacman.x == j  and map[i][j] == '\'' ) {
+				score++;
+				num_coin--;
+			}
+		}
+	}
+}
+
+void win_by_coin() {
+	if (num_coin == 0) win = true;
 }
 
 int main() {
 	setlocale(LC_ALL, "ru");
 	srand(time(NULL));
 	setup();
-	while (deth == false) {
+	while (lose == false or win == false) {
 		draw_timer_score();
 		drawMap();
 		input();
 		logic();
+		win_by_coin();
 		system("cls");
+	}
+	if (win == true) {
+		cout << "\n\n\n\n\n\n\n\t\t\t\t\t\tCONGRATULATIONS!!!" << endl;
+		cout << "\n\n\n\n\n\n\n\t\t\t\t\t\tYOU WIN!!!" << endl;
 	}
 	return 0;
 }
