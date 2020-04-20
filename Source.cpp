@@ -12,12 +12,12 @@ HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
 bool lose, win;
 
-int second = 0, hour = 0, minute = 0;
+int second = 0, hour = 0, minute = 0, stopwatch_sec = 0, stopwatch_min = 0;
 
 const int size_map_y = 22;
 const int size_map_x = 26;
 int score = 0;
-int num_coin = 187;
+int num_coin = 202;
 char map[size_map_y][size_map_x]{
 "BBBBBBBBBBBBBBBBBBBBBBBBB",//0					
 "B'''''''''''B'''''''''''B",//1					
@@ -29,7 +29,7 @@ char map[size_map_y][size_map_x]{
 "BBBBB'BBBB  B  BBBB'BBBBB",//7					
 "    B'B           B'B   ",//8					
 "BBBBB'B  BB---BB  B'BBBBB",//9					
-"     '   B ZNM B   '     ",//10				
+"     '   B     B   '     ",//10				
 "BBBBB'B  BBBBBBB  B'BBBBB",//11				
 "    B'B           B'B    ",//12			
 "BBBBB'B  BBBBBBB  B'BBBBB",//13			
@@ -51,7 +51,7 @@ enum Motion {
 	DOWN
 };
 
-Motion pacman_motion;
+Motion pacman_motion, enemy_motion_z;
 
 struct Pacman {
 	int x;
@@ -66,11 +66,21 @@ struct Fruit {
 struct Enemy {
 	int x;
 	int y;
+	int pos = 5; // выбор направления рандомно
 };
 
 Pacman pacman;
 Fruit fruit;
 Enemy z, n, m;
+
+
+void deth_by_enemy() {
+	lose = true;
+}
+
+void win_by_coin() {
+	if (num_coin == 0) win = true;
+}
 
 void setup() {
 	lose = false;
@@ -78,16 +88,29 @@ void setup() {
 	pacman_motion = STOP;
 	pacman.x = 23;
 	pacman.y = 20;
-	fruit.x = rand() % (size_map_x);
+	z.x = 11;
+	z.y = 10;
+	n.x = 12;
+	n.y = 10;
+	m.x = 13;
+	m.y = 10;
+	fruit.x = rand() % (size_map_x - 3);
 	fruit.y = rand() % (size_map_y);
 	for (size_t i = 0; i < size_map_y; i++) {
-		for (size_t j = 0; j < (size_map_x - 1); j++) {
+		for (size_t j = 0; j < (size_map_x); j++) {
 			while ((fruit.y == i and fruit.x == j and map[i][j] == 'B') or (fruit.y == i and fruit.x == j and map[i][j] == 'Z') /*or (fruit.y == l and fruit.x == n and map[l][n] == ' ')*/) {
-				fruit.x = rand() % (size_map_x - 1);
+				fruit.x = rand() % (size_map_x - 3);
 				fruit.y = rand() % size_map_y;
 			}
 		}
 	}
+	time_t rawtime = time(NULL);
+
+	struct tm* timeinfo = localtime(&rawtime);
+	int buf = timeinfo->tm_sec;
+	stopwatch_sec = buf;
+	buf = timeinfo->tm_min;
+	stopwatch_min = buf;
 }
 
 void draw_timer_score() {
@@ -98,7 +121,7 @@ void draw_timer_score() {
 	minute = timeinfo->tm_min;
 	second = timeinfo->tm_sec;
 	SetConsoleTextAttribute(hStdOut, FOREGROUND_RED);
-	cout << "Time: " << hour << " : " << minute << " : " << second << "\tCollected " << score << " of 187" << "\tLeft: " << num_coin << endl;
+	cout << "Time: " << hour << " : " << minute << " : " << second << "\tCollected " << score << " of 202" << "\tLeft: " << num_coin << endl;
 }
 
 void drawMap() {
@@ -108,15 +131,15 @@ void drawMap() {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_BLUE);
 				cout << "B";
 			}
-			else if (map[i][j] == 'Z') {
+			else if (i == z.y and j == z.x) {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_RED);
 				cout << "Z";
 			}
-			else if (map[i][j] == 'N') {
+			else if (i == n.y and j == n.x) {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_RED);
 				cout << "N";
 			}
-			else if (map[i][j] == 'M') {
+			else if (i == m.y and j == m.x) {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_RED);
 				cout << "L";
 			}
@@ -126,15 +149,11 @@ void drawMap() {
 			}
 			else if (i == pacman.y and j == pacman.x) {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-				cout << "P";
-			}
-			else if (map[i][j] == '*') {
-				SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-				cout << "*";
+				cout << "C";
 			}
 			else if (map[i][j] == '\'') {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-				cout << "\'";
+				cout << '\'';
 			}
 			else if (map[i][j] == '-') {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_BLUE);
@@ -175,13 +194,139 @@ void input() {
 	}
 }
 
+void enter_monster() {
+	if (stopwatch_sec == second - 5 and stopwatch_min == minute) {
+		z.x = 12;
+		z.y = 8;
+		z.pos = rand() % 4 + 1;
+		map[z.y][z.x] = ' ';
+	}
+	else if (stopwatch_sec == second - 40 and stopwatch_min == minute) {
+		n.x = 12;
+		n.y = 8;
+	}
+	else if (stopwatch_sec == second and stopwatch_min == minute - 1) {
+		m.x = 12;
+		m.y = 8;
+	}
+}
+
+void monster_move() {
+	//if((map[z.y][z.x + 1] == 'B' and enemy_motion_z == RIGHT) or (map[z.y - 1][z.x] == 'B' and enemy_motion_z == UP) or (map[z.y + 1][z.x] == 'B' and enemy_motion_z == DOWN) or (map[z.y][z.x - 1] == 'B' and enemy_motion_z == LEFT))
+		//z.pos = rand() % 5 + 1;
+	switch (z.pos) {
+	case 1: {
+		enemy_motion_z = UP;
+		break;
+	}
+	case 2: {
+		enemy_motion_z = RIGHT;
+		break;
+	}
+	case 3: {
+		enemy_motion_z = DOWN;
+		break;
+	}
+	case 4: {
+		enemy_motion_z = LEFT;
+		break;
+	}
+	case 5: {
+		enemy_motion_z = STOP;
+		break;
+	}
+	}
+	
+	switch (enemy_motion_z) {
+	case UP: {
+		if (map[z.y - 1][z.x] == ' ' /*or map[z.y - 1][z.x] == 'Z' or map[z.y - 1][z.x] == 'M' or map[z.y - 1][z.x] == 'N'*/) {
+			
+			map[z.y][z.x] = ' ';
+			map[z.y - 1][z.x] = 'Z';
+			z.y--;
+
+		}
+		else if (map[z.y - 1][z.x] == '\'') {
+
+			map[z.y][z.x] = '\'';
+			map[z.y - 1][z.x] = 'Z';
+			z.y--;
+		}
+		else {
+			z.pos = rand() % 4 + 1;
+		}
+		break;
+	}
+	case RIGHT: {
+		if (map[z.y][z.x + 1] == ' ' or map[z.y][z.x + 1] == 'Z' or map[z.y][z.x + 1] == 'M' or map[z.y][z.x + 1] == 'N') {
+			map[z.y][z.x] = ' ';
+			map[z.y][z.x + 1] = 'Z';
+			z.x++;
+		}
+		else if(map[z.y][z.x + 1] == '\'' ) {
+			map[z.y][z.x] = '\'';
+			map[z.y][z.x + 1] = 'Z';
+			z.x++;
+		}
+		else {
+			z.pos = rand() % 4 + 1;
+		}
+		break;
+	}
+	case DOWN: {
+		if (map[z.y + 1][z.x] == ' ' or map[z.y + 1][z.x] == 'Z' or map[z.y + 1][z.x] == 'M' or map[z.y + 1][z.x] == 'N') {
+			map[z.y][z.x] = ' ';
+			map[z.y + 1][z.x] = 'Z';
+			z.y++;
+		}
+		else if (map[z.y + 1][z.x] == '\'') {
+			map[z.y][z.x] = '\'';
+			map[z.y + 1][z.x] = 'Z';
+			z.y++;
+		}
+		else {
+			z.pos = rand() % 4 + 1;
+		}
+		break;
+	}
+	case LEFT: {
+		if (map[z.y][z.x - 1] == ' '  or map[z.y][z.x - 1] == 'Z' or map[z.y][z.x - 1] == 'M' or map[z.y][z.x - 1] == 'N') {
+			map[z.y][z.x] = ' ';
+			map[z.y][z.x - 1] = 'Z';
+			z.x--;
+		}
+		else if (map[z.y][z.x - 1] == '\'') {
+			map[z.y][z.x] = '\'';
+			map[z.y][z.x - 1] = 'Z';
+			z.x--;
+		}
+		else {
+			z.pos = rand() % 4 + 1;
+		}
+		break;
+	}
+	}
+}
+
 void logic() {
 	switch (pacman_motion) {
 	case UP: {
-		if (map[pacman.y - 1][pacman.x] == ' ' or map[pacman.y - 1][pacman.x] == '\'') {
-			map[pacman.y][pacman.x] = ' ';
-			map[pacman.y - 1][pacman.x] = 'P';
-			pacman.y--;
+		if (map[pacman.y - 1][pacman.x] == ' ' or map[pacman.y - 1][pacman.x] == '\'' or map[pacman.y - 1][pacman.x] == 'Z' or map[pacman.y - 1][pacman.x] == 'M' or map[pacman.y - 1][pacman.x] == 'N') {
+			if (map[pacman.y - 1][pacman.x] == 'Z' or map[pacman.y - 1][pacman.x] == 'M' or map[pacman.y - 1][pacman.x] == 'N') {
+				deth_by_enemy();
+			}
+			else if(map[pacman.y - 1][pacman.x] == '\''){
+				score++;
+				num_coin--;
+				map[pacman.y][pacman.x] = ' ';
+				map[pacman.y - 1][pacman.x] = 'C';
+				pacman.y--;
+			}
+			else {
+				map[pacman.y][pacman.x] = ' ';
+				map[pacman.y - 1][pacman.x] = 'C';
+				pacman.y--;
+			}
 		}
 		else {
 			pacman_motion = STOP;
@@ -189,10 +334,22 @@ void logic() {
 		break;
 	}
 	case RIGHT: {
-		if (map[pacman.y][pacman.x + 1] == ' ' or map[pacman.y][pacman.x + 1] == '\'') {
-			map[pacman.y][pacman.x] = ' ';
-			map[pacman.y][pacman.x + 1] = 'P';
-			pacman.x++;
+		if (map[pacman.y][pacman.x + 1] == ' ' or map[pacman.y][pacman.x + 1] == '\'' or map[pacman.y][pacman.x + 1] == 'Z' or map[pacman.y][pacman.x + 1] == 'M' or map[pacman.y][pacman.x + 1] == 'N') {
+			if (map[pacman.y][pacman.x + 1] == 'Z' or map[pacman.y][pacman.x + 1] == 'M' or map[pacman.y][pacman.x + 1] == 'N') {
+				deth_by_enemy();
+			}
+			else if (map[pacman.y][pacman.x + 1] == '\'') {
+				score++;
+				num_coin--;
+				map[pacman.y][pacman.x] = ' ';
+				map[pacman.y][pacman.x + 1] = 'C';
+				pacman.x++;
+			}
+			else {
+				map[pacman.y][pacman.x] = ' ';
+				map[pacman.y][pacman.x + 1] = 'C';
+				pacman.x++;
+			}
 		}
 		else {
 			pacman_motion = STOP;
@@ -200,10 +357,22 @@ void logic() {
 		break;
 	}
 	case DOWN: {
-		if (map[pacman.y + 1][pacman.x] == ' ' or map[pacman.y + 1][pacman.x] == '\'') {
-			map[pacman.y][pacman.x] = ' ';
-			map[pacman.y + 1][pacman.x] = 'P';
-			pacman.y++;
+		if (map[pacman.y + 1][pacman.x] == ' ' or map[pacman.y + 1][pacman.x] == '\'' or map[pacman.y + 1][pacman.x] == 'Z' or map[pacman.y + 1][pacman.x] == 'M' or map[pacman.y + 1][pacman.x] == 'N') {
+			if (map[pacman.y + 1][pacman.x] == 'Z' or map[pacman.y + 1][pacman.x] == 'M' or map[pacman.y + 1][pacman.x] == 'N') {
+				deth_by_enemy();
+			}
+			else if (map[pacman.y + 1][pacman.x] == '\'') {
+				score++;
+				num_coin--;
+				map[pacman.y][pacman.x] = ' ';
+				map[pacman.y + 1][pacman.x] = 'C';
+				pacman.y++;
+			}
+			else {
+				map[pacman.y][pacman.x] = ' ';
+				map[pacman.y + 1][pacman.x] = 'C';
+				pacman.y++;
+			}
 		}
 		else {
 			pacman_motion = STOP;
@@ -211,10 +380,22 @@ void logic() {
 		break;
 	}
 	case LEFT: {
-		if (map[pacman.y][pacman.x - 1] == ' ' or map[pacman.y][pacman.x - 1] == '\'') {
-			map[pacman.y][pacman.x] = ' ';
-			map[pacman.y][pacman.x - 1] = 'P';
-			pacman.x--;
+		if (map[pacman.y][pacman.x - 1] == ' ' or map[pacman.y][pacman.x - 1] == '\'' or map[pacman.y][pacman.x - 1] == 'Z' or map[pacman.y][pacman.x - 1] == 'M' or map[pacman.y][pacman.x - 1] == 'N') {
+			if (map[pacman.y][pacman.x - 1] == 'Z' or map[pacman.y][pacman.x - 1] == 'M' or map[pacman.y][pacman.x - 1] == 'N') {
+				deth_by_enemy();
+			}
+			else if (map[pacman.y][pacman.x - 1] == '\'') {
+				score++;
+				num_coin--;
+				map[pacman.y][pacman.x] = ' ';
+				map[pacman.y][pacman.x - 1] = 'C';
+				pacman.x--;
+			}
+			else {
+				map[pacman.y][pacman.x] = ' ';
+				map[pacman.y][pacman.x - 1] = 'C';
+				pacman.x--;
+			}
 		}
 		else {
 			pacman_motion = STOP;
@@ -223,18 +404,7 @@ void logic() {
 	}
 	}
 	
-	if (pacman.x == fruit.x and pacman.y == fruit.y) {
-		fruit.x = rand() % size_map_x;
-		fruit.y = rand() % size_map_y;
-	}
-	for (size_t i = 0; i < size_map_y; i++) {
-		for (size_t j = 0; j < (size_map_x - 1); j++) {
-			while ((fruit.y == i and fruit.x == j and map[i][j] == 'B') or (fruit.y == i and fruit.x == j and map[i][j] == '-') /*or (fruit.y == l and fruit.x == n and map[l][n] == ' ')*/) {
-				fruit.x = rand() % (size_map_x - 1);
-				fruit.y = rand() % size_map_y;
-			}
-		}
-	}
+	//телепорт на карте
 	if (pacman.x == 0 and pacman.y == 10) {
 		pacman.x = 24;
 		map[10][0] = ' ';
@@ -243,57 +413,45 @@ void logic() {
 		pacman.x = 1;
 		map[10][24] = ' ';
 	}
+
+}
+
+void spawn_new_fruit() {
+	if (pacman.x == fruit.x and pacman.y == fruit.y) {
+		fruit.x = rand() % (size_map_x - 3);
+		fruit.y = rand() % size_map_y;
+	}
 	for (size_t i = 0; i < size_map_y; i++) {
-		for (size_t j = 0; j < size_map_x; j++) {
-			if (pacman.y == i and pacman.x == j  and map[i][j] == '\'' ) {
-				score++;
-				num_coin--;
+		for (size_t j = 0; j < (size_map_x); j++) {
+			while ((fruit.y == i and fruit.x == j and map[i][j] == 'B') or (fruit.y == i and fruit.x == j and map[i][j] == '-') /*or (fruit.y == l and fruit.x == n and map[l][n] == ' ')*/) {
+				fruit.x = rand() % (size_map_x - 3);
+				fruit.y = rand() % size_map_y;
 			}
 		}
 	}
-}
-
-void win_by_coin() {
-	if (num_coin == 0) win = true;
 }
 
 int main() {
 	setlocale(LC_ALL, "ru");
 	srand(time(NULL));
 	setup();
-	while (lose == false or win == false) {
+	while (lose == false and win == false) {
 		draw_timer_score();
 		drawMap();
 		input();
 		logic();
+		enter_monster();
+		monster_move();
+		spawn_new_fruit();
 		win_by_coin();
 		system("cls");
 	}
 	if (win == true) {
 		cout << "\n\n\n\n\n\n\n\t\t\t\t\t\tCONGRATULATIONS!!!" << endl;
-		cout << "\n\n\n\n\n\n\n\t\t\t\t\t\tYOU WIN!!!" << endl;
+		cout << "\n\n\n\n\n\n\n\t\t\t\t\t\t   YOU WIN!!!" << endl;
+	}
+	else if (lose == true) {
+		cout << "\n\n\n\n\n\n\n\t\t\t\t\t\tYOU LOSE!" << endl;
 	}
 	return 0;
 }
-/*
-
-SetConsoleTextAttribute(hStdOut,
-		BACKGROUND_BLUE | BACKGROUND_INTENSITY |
-		FOREGROUND_RED | FOREGROUND_GREEN |
-		FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	std::cout << "Green\n";*/
-
-
-	/*second++;
-	while (second > 59) {
-		second -= 60;
-		minute++;
-	}
-	while (minute > 59) {
-		minute -= 60;
-		hour++;
-	}
-	while (hour > 24) {
-		hour -= 23;
-	}
-	cout << "Time: " << hour << " : " << minute << " : " << second << endl;*/
