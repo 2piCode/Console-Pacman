@@ -20,28 +20,28 @@ int score = 0;
 int num_coin = 202;
 
 char map[size_map_y][size_map_x]{
-"BBBBBBBBBBBBBBBBBBBBBBBBB",//0					
-"B'''''''''''B'''''''''''B",//1					
-"B'BBB'BBBBB'B'BBBBB'BBB'B",//2					
-"B'BBB'BBBBB'B'BBBBB'BBB'B",//3					
-"B'''''''''''''''''''''''B",//4					
-"B'BBB'B'BBBBBBBBB'B'BBB'B",//5					
-"B'''''B'''''B'''''B'''''B",//6					
-"BBBBB'BBBB  B  BBBB'BBBBB",//7					
-"    B'B           B'B   ",//8					
-"BBBBB'B  BB---BB  B'BBBBB",//9					
-"     '   B     B   '     ",//10				
-"BBBBB'B  BBBBBBB  B'BBBBB",//11				
-"    B'B           B'B    ",//12			
-"BBBBB'B  BBBBBBB  B'BBBBB",//13			
-"B'''''''''''B'''''''''''B",//14		
-"B'BBB'BBBBB'B'BBBBB'BBB'B",//15			
-"B'''B'''''''''''''''B'''B",//16		
-"BBB'B'B''BBBBBBB''B'B'BBB",//17			
-"B'''''B'''''B'''''B'''''B",//18		
-"B'BBBBBBBB''B''BBBBBBBB'B",//19		
-"B'''''''''''''''''''''' B",//20		
-"BBBBBBBBBBBBBBBBBBBBBBBBB",//21		
+"|-----------------------|",//0					
+"|'''''''''''|'''''''''''|",//1					
+"|'|||'|||||'|'|||||'|||'|",//2					
+"|'|||'|||||'|'|||||'|||'|",//3					
+"|'''''''''''''''''''''''|",//4					
+"|'|||'|'---------'|'|||'|",//5					
+"|'''''|'''''|'''''|'''''|",//6					
+"|----'|---  |  ---|'-----",//7					
+"    |'|           |'|   ",//8					
+"-----'|  |-----|  |'-----",//9					
+"     '   |     |   '     ",//10				
+"-----'|  -------  |'-----",//11				
+"    |'|           |'|    ",//12			
+"-----'|  -------  |'-----",//13			
+"|'''''''''''|'''''''''''|",//14		
+"|'--|'-----'|'-----'---'|",//15			
+"|'''|'''''''''''''''|'''|",//16		
+"|--'|'|''-------''|'|'--|",//17			
+"|'''''|'''''|'''''|'''''|",//18		
+"|'--------''|''--------'|",//19		
+"|'''''''''''''''''''''' |",//20		
+"|-----------------------|",//21		
 };
 
 enum Motion {
@@ -148,9 +148,13 @@ void draw_timer_score() {
 void drawMap() {
 	for (size_t i = 0; i < size_map_y; i++) {
 		for (size_t j = 0; j < size_map_x; j++) {
-			if (map[i][j] == 'B') {
-				SetConsoleTextAttribute(hStdOut, FOREGROUND_BLUE);
-				cout << "B";
+			if (map[i][j] == '|') {
+				SetConsoleTextAttribute(hStdOut, FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+				cout << "|";
+			}
+			else if (map[i][j] == '-') {
+				SetConsoleTextAttribute(hStdOut, FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+				cout << "-";
 			}
 			else if (i == monsterZ.y and j == monsterZ.x) {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_RED);
