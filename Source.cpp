@@ -12,7 +12,7 @@ HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
 bool lose, win;
 
-int second = 0, hour = 0, minute = 0, stopwatch_enter_monster = 0;
+int second = 0, hour = 0, minute = 0, stopwatch_enter_monster_sec = 0;
 const int size_map_y = 22;
 const int size_map_x = 26;
 
@@ -114,9 +114,14 @@ void setup_spawn_fruit(){
 	}
 }
 
-void enter_monster_time() {	
-	if (stopwatch_enter_monster + 5 > 59) stopwatch_enter_monster -= 60;
-	if (stopwatch_enter_monster + 5 < 59 and stopwatch_enter_monster + 10 > 59) stopwatch_enter_monster -= 60;
+void setup_enter_monster_time() {
+	time_t rawtime = time(NULL);
+
+	struct tm* timeinfo = localtime(&rawtime);
+	int stopwatch_enter_monster_min;
+	stopwatch_enter_monster_sec = timeinfo->tm_sec;
+	stopwatch_enter_monster_min = timeinfo->tm_min;
+	stopwatch_enter_monster_sec += stopwatch_enter_monster_min * 60;
 }
 
 void setup() {
@@ -126,12 +131,7 @@ void setup() {
 	setup_pacman();
 	setup_monster();
 	setup_spawn_fruit();
-	
-	time_t rawtime = time(NULL);
-
-	struct tm* timeinfo = localtime(&rawtime);
-	stopwatch_enter_monster = timeinfo->tm_sec;
-	enter_monster_time();
+	setup_enter_monster_time();
 }
 
 void draw_timer_score() {
@@ -293,19 +293,19 @@ void pacman_move() {
 }
 
 void enter_monster() {
-	if (stopwatch_enter_monster == second - 5 and monsterZ.y == 10 and monsterZ.x == 11) {
+	if (stopwatch_enter_monster_sec == second + minute * 60 - 5 and monsterZ.y == 10 and monsterZ.x == 11) {
 		monsterZ.x = 12;
 		monsterZ.y = 8;
 		monsterZ.side_move = rand() % 4 + 1;
 		map[8][11] = ' ';
 	}
-	else if (stopwatch_enter_monster == second - 10 and monsterN.y == 10 and monsterN.x == 12) {
+	else if (stopwatch_enter_monster_sec == second + minute * 60 - 10 and monsterN.y == 10 and monsterN.x == 12) {
 		monsterN.x = 12;
 		monsterN.y = 8;
 		monsterN.side_move = rand() % 4 + 1;
 		map[8][11] = ' ';
 	}
-	else if (stopwatch_enter_monster == second - 20 and monsterM.y == 10 and monsterM.x == 13) {
+	else if (stopwatch_enter_monster_sec == second + minute * 60 - 20 and monsterM.y == 10 and monsterM.x == 13) {
 		monsterM.x = 12;
 		monsterM.y = 8;
 		monsterM.side_move = rand() % 4 + 1;
