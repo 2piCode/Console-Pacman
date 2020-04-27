@@ -12,12 +12,13 @@ HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
 bool lose, win;
 
-int second = 0, hour = 0, minute = 0, stopwatch_sec = 0, stopwatch_min = 0;
-
+int second = 0, hour = 0, minute = 0, stopwatch_enter_monster = 0;
 const int size_map_y = 22;
 const int size_map_x = 26;
+
 int score = 0;
 int num_coin = 202;
+
 char map[size_map_y][size_map_x]{
 "BBBBBBBBBBBBBBBBBBBBBBBBB",//0					
 "B'''''''''''B'''''''''''B",//1					
@@ -51,7 +52,7 @@ enum Motion {
 	DOWN
 };
 
-Motion pacman_motion, enemy_motion_z;
+Motion pacman_motion;
 
 struct Pacman {
 	int x;
@@ -63,37 +64,44 @@ struct Fruit {
 	int y;
 };
 
-struct Enemy {
+struct Monster {
 	int x;
 	int y;
-	int pos = 5; // выбор направления рандомно
+	int side_move = 5;
 };
 
 Pacman pacman;
 Fruit fruit;
-Enemy z, n, m;
+Monster monsterZ, monsterN, monsterM;
 
-
-void deth_by_enemy() {
-	lose = true;
+void deth_by_monster() {
+	if (pacman.y == monsterZ.y and pacman.x == monsterZ.x or
+		pacman.y == monsterN.y and pacman.x == monsterN.x or
+		pacman.y == monsterM.y and pacman.x == monsterM.x) {
+		lose = true;
+	}
 }
 
 void win_by_coin() {
 	if (num_coin == 0) win = true;
 }
 
-void setup() {
-	lose = false;
-	win = false;
+void setup_pacman() {
 	pacman_motion = STOP;
 	pacman.x = 23;
 	pacman.y = 20;
-	z.x = 11;
-	z.y = 10;
-	n.x = 12;
-	n.y = 10;
-	m.x = 13;
-	m.y = 10;
+}
+
+void setup_monster() {
+	monsterZ.x = 11;
+	monsterZ.y = 10;
+	monsterN.x = 12;
+	monsterN.y = 10;
+	monsterM.x = 13;
+	monsterM.y = 10;
+}
+
+void setup_spawn_fruit(){
 	fruit.x = rand() % (size_map_x - 3);
 	fruit.y = rand() % (size_map_y);
 	for (size_t i = 0; i < size_map_y; i++) {
@@ -104,13 +112,26 @@ void setup() {
 			}
 		}
 	}
+}
+
+void enter_monster_time() {	
+	if (stopwatch_enter_monster + 5 > 59) stopwatch_enter_monster -= 60;
+	if (stopwatch_enter_monster + 5 < 59 and stopwatch_enter_monster + 10 > 59) stopwatch_enter_monster -= 60;
+}
+
+void setup() {
+	lose = false;
+	win = false;
+
+	setup_pacman();
+	setup_monster();
+	setup_spawn_fruit();
+	
 	time_t rawtime = time(NULL);
 
 	struct tm* timeinfo = localtime(&rawtime);
-	int buf = timeinfo->tm_sec;
-	stopwatch_sec = buf;
-	buf = timeinfo->tm_min;
-	stopwatch_min = buf;
+	stopwatch_enter_monster = timeinfo->tm_sec;
+	enter_monster_time();
 }
 
 void draw_timer_score() {
@@ -131,17 +152,17 @@ void drawMap() {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_BLUE);
 				cout << "B";
 			}
-			else if (i == z.y and j == z.x) {
+			else if (i == monsterZ.y and j == monsterZ.x) {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_RED);
 				cout << "Z";
 			}
-			else if (i == n.y and j == n.x) {
+			else if (i == monsterN.y and j == monsterN.x) {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_RED);
 				cout << "N";
 			}
-			else if (i == m.y and j == m.x) {
+			else if (i == monsterM.y and j == monsterM.x) {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_RED);
-				cout << "L";
+				cout << "M";
 			}
 			else if (i == fruit.y and j == fruit.x) {
 				SetConsoleTextAttribute(hStdOut, FOREGROUND_GREEN);
@@ -167,10 +188,14 @@ void drawMap() {
 	}
 }
 
-void input() {
+void input_move() {
 	if (_kbhit()) {
 		switch (_getch()) {
 		case 'w': {
+			pacman_motion = UP;
+			break;
+		}
+		case 'W': {
 			pacman_motion = UP;
 			break;
 		}
@@ -178,7 +203,15 @@ void input() {
 			pacman_motion = RIGHT;
 			break;
 		}
+		case 'D': {
+			pacman_motion = RIGHT;
+			break;
+		}
 		case 's': {
+			pacman_motion = DOWN;
+			break;
+		}
+		case 'S': {
 			pacman_motion = DOWN;
 			break;
 		}
@@ -186,234 +219,136 @@ void input() {
 			pacman_motion = LEFT;
 			break;
 		}
-		case 'ц': {
-			pacman_motion = UP;
+		case 'A': {
+			pacman_motion = LEFT;
 			break;
 		}
 		}
 	}
 }
 
-void enter_monster() {
-	if (stopwatch_sec == second - 5 and stopwatch_min == minute) {
-		z.x = 12;
-		z.y = 8;
-		z.pos = rand() % 4 + 1;
-		map[z.y][z.x] = ' ';
-	}
-	else if (stopwatch_sec == second - 40 and stopwatch_min == minute) {
-		n.x = 12;
-		n.y = 8;
-	}
-	else if (stopwatch_sec == second and stopwatch_min == minute - 1) {
-		m.x = 12;
-		m.y = 8;
-	}
-}
-
-void monster_move() {
-	//if((map[z.y][z.x + 1] == 'B' and enemy_motion_z == RIGHT) or (map[z.y - 1][z.x] == 'B' and enemy_motion_z == UP) or (map[z.y + 1][z.x] == 'B' and enemy_motion_z == DOWN) or (map[z.y][z.x - 1] == 'B' and enemy_motion_z == LEFT))
-		//z.pos = rand() % 5 + 1;
-	switch (z.pos) {
-	case 1: {
-		enemy_motion_z = UP;
-		break;
-	}
-	case 2: {
-		enemy_motion_z = RIGHT;
-		break;
-	}
-	case 3: {
-		enemy_motion_z = DOWN;
-		break;
-	}
-	case 4: {
-		enemy_motion_z = LEFT;
-		break;
-	}
-	case 5: {
-		enemy_motion_z = STOP;
-		break;
-	}
-	}
-	
-	switch (enemy_motion_z) {
-	case UP: {
-		if (map[z.y - 1][z.x] == ' ' /*or map[z.y - 1][z.x] == 'Z' or map[z.y - 1][z.x] == 'M' or map[z.y - 1][z.x] == 'N'*/) {
-			
-			map[z.y][z.x] = ' ';
-			map[z.y - 1][z.x] = 'Z';
-			z.y--;
-
-		}
-		else if (map[z.y - 1][z.x] == '\'') {
-
-			map[z.y][z.x] = '\'';
-			map[z.y - 1][z.x] = 'Z';
-			z.y--;
-		}
-		else {
-			z.pos = rand() % 4 + 1;
-		}
-		break;
-	}
-	case RIGHT: {
-		if (map[z.y][z.x + 1] == ' ' or map[z.y][z.x + 1] == 'Z' or map[z.y][z.x + 1] == 'M' or map[z.y][z.x + 1] == 'N') {
-			map[z.y][z.x] = ' ';
-			map[z.y][z.x + 1] = 'Z';
-			z.x++;
-		}
-		else if(map[z.y][z.x + 1] == '\'' ) {
-			map[z.y][z.x] = '\'';
-			map[z.y][z.x + 1] = 'Z';
-			z.x++;
-		}
-		else {
-			z.pos = rand() % 4 + 1;
-		}
-		break;
-	}
-	case DOWN: {
-		if (map[z.y + 1][z.x] == ' ' or map[z.y + 1][z.x] == 'Z' or map[z.y + 1][z.x] == 'M' or map[z.y + 1][z.x] == 'N') {
-			map[z.y][z.x] = ' ';
-			map[z.y + 1][z.x] = 'Z';
-			z.y++;
-		}
-		else if (map[z.y + 1][z.x] == '\'') {
-			map[z.y][z.x] = '\'';
-			map[z.y + 1][z.x] = 'Z';
-			z.y++;
-		}
-		else {
-			z.pos = rand() % 4 + 1;
-		}
-		break;
-	}
-	case LEFT: {
-		if (map[z.y][z.x - 1] == ' '  or map[z.y][z.x - 1] == 'Z' or map[z.y][z.x - 1] == 'M' or map[z.y][z.x - 1] == 'N') {
-			map[z.y][z.x] = ' ';
-			map[z.y][z.x - 1] = 'Z';
-			z.x--;
-		}
-		else if (map[z.y][z.x - 1] == '\'') {
-			map[z.y][z.x] = '\'';
-			map[z.y][z.x - 1] = 'Z';
-			z.x--;
-		}
-		else {
-			z.pos = rand() % 4 + 1;
-		}
-		break;
-	}
-	}
-}
-
-void logic() {
+void pacman_move() {
 	switch (pacman_motion) {
 	case UP: {
 		if (map[pacman.y - 1][pacman.x] == ' ' or map[pacman.y - 1][pacman.x] == '\'' or map[pacman.y - 1][pacman.x] == 'Z' or map[pacman.y - 1][pacman.x] == 'M' or map[pacman.y - 1][pacman.x] == 'N') {
-			if (map[pacman.y - 1][pacman.x] == 'Z' or map[pacman.y - 1][pacman.x] == 'M' or map[pacman.y - 1][pacman.x] == 'N') {
-				deth_by_enemy();
-			}
-			else if(map[pacman.y - 1][pacman.x] == '\''){
+			if(map[pacman.y][pacman.x] == '\''){
 				score++;
 				num_coin--;
 				map[pacman.y][pacman.x] = ' ';
-				map[pacman.y - 1][pacman.x] = 'C';
+				pacman.y--;
+			}else {
 				pacman.y--;
 			}
-			else {
-				map[pacman.y][pacman.x] = ' ';
-				map[pacman.y - 1][pacman.x] = 'C';
-				pacman.y--;
-			}
-		}
-		else {
+		}else {
 			pacman_motion = STOP;
 		}
 		break;
 	}
 	case RIGHT: {
 		if (map[pacman.y][pacman.x + 1] == ' ' or map[pacman.y][pacman.x + 1] == '\'' or map[pacman.y][pacman.x + 1] == 'Z' or map[pacman.y][pacman.x + 1] == 'M' or map[pacman.y][pacman.x + 1] == 'N') {
-			if (map[pacman.y][pacman.x + 1] == 'Z' or map[pacman.y][pacman.x + 1] == 'M' or map[pacman.y][pacman.x + 1] == 'N') {
-				deth_by_enemy();
-			}
-			else if (map[pacman.y][pacman.x + 1] == '\'') {
+			if (map[pacman.y][pacman.x] == '\'') {
 				score++;
 				num_coin--;
-				map[pacman.y][pacman.x] = ' ';
-				map[pacman.y][pacman.x + 1] = 'C';
+				map[pacman.y][pacman.x ] = ' ';
+				pacman.x++;
+			}else {
 				pacman.x++;
 			}
-			else {
-				map[pacman.y][pacman.x] = ' ';
-				map[pacman.y][pacman.x + 1] = 'C';
-				pacman.x++;
-			}
-		}
-		else {
+		}else {
 			pacman_motion = STOP;
 		}
 		break;
 	}
 	case DOWN: {
 		if (map[pacman.y + 1][pacman.x] == ' ' or map[pacman.y + 1][pacman.x] == '\'' or map[pacman.y + 1][pacman.x] == 'Z' or map[pacman.y + 1][pacman.x] == 'M' or map[pacman.y + 1][pacman.x] == 'N') {
-			if (map[pacman.y + 1][pacman.x] == 'Z' or map[pacman.y + 1][pacman.x] == 'M' or map[pacman.y + 1][pacman.x] == 'N') {
-				deth_by_enemy();
-			}
-			else if (map[pacman.y + 1][pacman.x] == '\'') {
+			if (map[pacman.y][pacman.x] == '\'') {
 				score++;
 				num_coin--;
 				map[pacman.y][pacman.x] = ' ';
-				map[pacman.y + 1][pacman.x] = 'C';
+				pacman.y++;
+			}else {
 				pacman.y++;
 			}
-			else {
-				map[pacman.y][pacman.x] = ' ';
-				map[pacman.y + 1][pacman.x] = 'C';
-				pacman.y++;
-			}
-		}
-		else {
+		}else {
 			pacman_motion = STOP;
 		}
 		break;
 	}
 	case LEFT: {
 		if (map[pacman.y][pacman.x - 1] == ' ' or map[pacman.y][pacman.x - 1] == '\'' or map[pacman.y][pacman.x - 1] == 'Z' or map[pacman.y][pacman.x - 1] == 'M' or map[pacman.y][pacman.x - 1] == 'N') {
-			if (map[pacman.y][pacman.x - 1] == 'Z' or map[pacman.y][pacman.x - 1] == 'M' or map[pacman.y][pacman.x - 1] == 'N') {
-				deth_by_enemy();
-			}
-			else if (map[pacman.y][pacman.x - 1] == '\'') {
+			if (map[pacman.y][pacman.x] == '\'') {
 				score++;
 				num_coin--;
 				map[pacman.y][pacman.x] = ' ';
-				map[pacman.y][pacman.x - 1] = 'C';
+				pacman.x--;
+			}else {
 				pacman.x--;
 			}
-			else {
-				map[pacman.y][pacman.x] = ' ';
-				map[pacman.y][pacman.x - 1] = 'C';
-				pacman.x--;
-			}
-		}
-		else {
+		}else {
 			pacman_motion = STOP;
 		}
 		break;
 	}
 	}
-	
-	//телепорт на карте
-	if (pacman.x == 0 and pacman.y == 10) {
-		pacman.x = 24;
-		map[10][0] = ' ';
-	}
-	else if (pacman.x == 24 and pacman.y == 10) {
-		pacman.x = 1;
-		map[10][24] = ' ';
-	}
+}
 
+void enter_monster() {
+	if (stopwatch_enter_monster == second - 5 and monsterZ.y == 10 and monsterZ.x == 11) {
+		monsterZ.x = 12;
+		monsterZ.y = 8;
+		monsterZ.side_move = rand() % 4 + 1;
+		map[8][11] = ' ';
+	}
+	else if (stopwatch_enter_monster == second - 10 and monsterN.y == 10 and monsterN.x == 12) {
+		monsterN.x = 12;
+		monsterN.y = 8;
+		monsterN.side_move = rand() % 4 + 1;
+		map[8][11] = ' ';
+	}
+	else if (stopwatch_enter_monster == second - 20 and monsterM.y == 10 and monsterM.x == 13) {
+		monsterM.x = 12;
+		monsterM.y = 8;
+		monsterM.side_move = rand() % 4 + 1;
+		map[8][11] = ' ';
+	}
+}
+
+void monster_move(Monster &enemy) {
+	switch (enemy.side_move) {
+	case 1: {
+		if (map[enemy.y - 1][enemy.x] == ' ' or map[enemy.y - 1][enemy.x] == '\'') {
+			enemy.y--;
+
+		}else {
+			enemy.side_move = rand() % 4 + 1;
+		}
+		break;
+	}
+	case 2: {
+		if (map[enemy.y][enemy.x + 1] == ' ' or map[enemy.y][enemy.x + 1] == '\'') {
+			enemy.x++;
+		}else {
+			enemy.side_move = rand() % 4 + 1;
+		}
+		break;
+	}
+	case 3: {
+		if (map[enemy.y + 1][enemy.x] == ' ' or map[enemy.y + 1][enemy.x] == '\'') {
+			enemy.y++;
+		}else {
+			enemy.side_move = rand() % 4 + 1;
+		}
+		break;
+	}
+	case 4: {
+		if (map[enemy.y][enemy.x - 1] == ' ' or map[enemy.y][enemy.x - 1] == '\'') {
+			enemy.x--;
+		}else {
+			enemy.side_move = rand() % 4 + 1;
+		}
+		break;
+	}
+	}
 }
 
 void spawn_new_fruit() {
@@ -431,26 +366,52 @@ void spawn_new_fruit() {
 	}
 }
 
+void teleport() {
+	if (pacman.x == 0 and pacman.y == 10) {
+		pacman.x = 24;
+		map[10][0] = ' ';
+	}
+	else if (pacman.x == 24 and pacman.y == 10) {
+		pacman.x = 1;
+		map[10][24] = ' ';
+	}
+
+}
+
 int main() {
 	setlocale(LC_ALL, "ru");
 	srand(time(NULL));
+	cout << "\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\tWelcome to the Pacman console game" << endl;
+	SetConsoleTextAttribute(hStdOut, BACKGROUND_INTENSITY);
+	cout << "\t\t\t\t\t\tSTART GAME";
+	while (!_kbhit());
+	SetConsoleTextAttribute(hStdOut, COLOR_BACKGROUND);
+	system("cls");
 	setup();
 	while (lose == false and win == false) {
 		draw_timer_score();
 		drawMap();
-		input();
-		logic();
+		input_move();
+		pacman_move();
+		teleport();
 		enter_monster();
-		monster_move();
+		monster_move(monsterZ);
+		monster_move(monsterN);
+		monster_move(monsterM);
 		spawn_new_fruit();
+		deth_by_monster();
 		win_by_coin();
 		system("cls");
 	}
 	if (win == true) {
-		cout << "\n\n\n\n\n\n\n\t\t\t\t\t\tCONGRATULATIONS!!!" << endl;
-		cout << "\n\n\n\n\n\n\n\t\t\t\t\t\t   YOU WIN!!!" << endl;
+		system("cls");
+		SetConsoleTextAttribute(hStdOut, COLOR_BACKGROUND | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+		cout << "\n\n\n\n\n\n\n\t\t\t\t\tCONGRATULATIONS!!!" << endl;
+		cout << "\t\t\t\t\t   YOU WIN!!!" << endl;
 	}
 	else if (lose == true) {
+		system("cls");
+		SetConsoleTextAttribute(hStdOut, COLOR_BACKGROUND | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 		cout << "\n\n\n\n\n\n\n\t\t\t\t\t\tYOU LOSE!" << endl;
 	}
 	return 0;
