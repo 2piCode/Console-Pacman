@@ -1,4 +1,4 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <iostream>
 #include <fstream>
@@ -12,7 +12,7 @@ HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
 bool lose, win;
 
-int second = 0, hour = 0, minute = 0, stopwatch_enter_monster_sec = 0;
+int second = 0, hour = 0, minute = 0, stopwatch_enter_monster_sec = 0, life = 3;
 const int size_map_y = 22;
 const int size_map_x = 26;
 
@@ -78,8 +78,11 @@ void deth_by_monster() {
 	if (pacman.y == monsterZ.y and pacman.x == monsterZ.x or
 		pacman.y == monsterN.y and pacman.x == monsterN.x or
 		pacman.y == monsterM.y and pacman.x == monsterM.x) {
-		lose = true;
+		life--;
+		pacman.x = 23;
+		pacman.y = 20;
 	}
+	if (life == 0) lose = true;
 }
 
 void win_by_coin() {
@@ -101,7 +104,7 @@ void setup_monster() {
 	monsterM.y = 10;
 }
 
-void setup_spawn_fruit(){
+void setup_spawn_fruit() {
 	fruit.x = rand() % (size_map_x - 3);
 	fruit.y = rand() % (size_map_y);
 	for (size_t i = 0; i < size_map_y; i++) {
@@ -134,15 +137,19 @@ void setup() {
 	setup_enter_monster_time();
 }
 
-void draw_timer_score() {
+void draw_timer_score_life() {
 	time_t rawtime = time(NULL);
 
 	struct tm* timeinfo = localtime(&rawtime);
 	hour = timeinfo->tm_hour;
 	minute = timeinfo->tm_min;
 	second = timeinfo->tm_sec;
+	SetConsoleTextAttribute(hStdOut, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+	std::cout << "Time: " << hour << " : " << minute << " : " << second;
+	SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+	std::cout << "\tCollected " << score << " of 202" << "\tLeft: " << num_coin;
 	SetConsoleTextAttribute(hStdOut, FOREGROUND_RED);
-	cout << "Time: " << hour << " : " << minute << " : " << second << "\tCollected " << score << " of 202" << "\tLeft: " << num_coin << endl;
+	std::cout << "\tLife: " << life << std::endl;
 }
 
 void drawMap() {
@@ -192,7 +199,7 @@ void drawMap() {
 	}
 }
 
-void input_move() {
+void pacman_input_move() {
 	if (_kbhit()) {
 		switch (_getch()) {
 		case 'w': {
@@ -200,6 +207,10 @@ void input_move() {
 			break;
 		}
 		case 'W': {
+			pacman_motion = UP;
+			break;
+		}
+		case 72: {
 			pacman_motion = UP;
 			break;
 		}
@@ -211,11 +222,19 @@ void input_move() {
 			pacman_motion = RIGHT;
 			break;
 		}
+		case 77: {
+			pacman_motion = RIGHT;
+			break;
+		}
 		case 's': {
 			pacman_motion = DOWN;
 			break;
 		}
 		case 'S': {
+			pacman_motion = DOWN;
+			break;
+		}
+		case 80: {
 			pacman_motion = DOWN;
 			break;
 		}
@@ -227,6 +246,10 @@ void input_move() {
 			pacman_motion = LEFT;
 			break;
 		}
+		case 75: {
+			pacman_motion = LEFT;
+			break;
+		}
 		}
 	}
 }
@@ -235,15 +258,17 @@ void pacman_move() {
 	switch (pacman_motion) {
 	case UP: {
 		if (map[pacman.y - 1][pacman.x] == ' ' or map[pacman.y - 1][pacman.x] == '\'' or map[pacman.y - 1][pacman.x] == 'Z' or map[pacman.y - 1][pacman.x] == 'M' or map[pacman.y - 1][pacman.x] == 'N') {
-			if(map[pacman.y][pacman.x] == '\''){
+			if (map[pacman.y][pacman.x] == '\'') {
 				score++;
 				num_coin--;
 				map[pacman.y][pacman.x] = ' ';
 				pacman.y--;
-			}else {
+			}
+			else {
 				pacman.y--;
 			}
-		}else {
+		}
+		else {
 			pacman_motion = STOP;
 		}
 		break;
@@ -253,12 +278,14 @@ void pacman_move() {
 			if (map[pacman.y][pacman.x] == '\'') {
 				score++;
 				num_coin--;
-				map[pacman.y][pacman.x ] = ' ';
-				pacman.x++;
-			}else {
+				map[pacman.y][pacman.x] = ' ';
 				pacman.x++;
 			}
-		}else {
+			else {
+				pacman.x++;
+			}
+		}
+		else {
 			pacman_motion = STOP;
 		}
 		break;
@@ -270,10 +297,12 @@ void pacman_move() {
 				num_coin--;
 				map[pacman.y][pacman.x] = ' ';
 				pacman.y++;
-			}else {
+			}
+			else {
 				pacman.y++;
 			}
-		}else {
+		}
+		else {
 			pacman_motion = STOP;
 		}
 		break;
@@ -285,10 +314,12 @@ void pacman_move() {
 				num_coin--;
 				map[pacman.y][pacman.x] = ' ';
 				pacman.x--;
-			}else {
+			}
+			else {
 				pacman.x--;
 			}
-		}else {
+		}
+		else {
 			pacman_motion = STOP;
 		}
 		break;
@@ -317,13 +348,14 @@ void enter_monster() {
 	}
 }
 
-void monster_move(Monster &enemy) {
+void monster_move(Monster& enemy) {
 	switch (enemy.side_move) {
 	case 1: {
 		if (map[enemy.y - 1][enemy.x] == ' ' or map[enemy.y - 1][enemy.x] == '\'') {
 			enemy.y--;
 
-		}else {
+		}
+		else {
 			enemy.side_move = rand() % 4 + 1;
 		}
 		break;
@@ -331,7 +363,8 @@ void monster_move(Monster &enemy) {
 	case 2: {
 		if (map[enemy.y][enemy.x + 1] == ' ' or map[enemy.y][enemy.x + 1] == '\'') {
 			enemy.x++;
-		}else {
+		}
+		else {
 			enemy.side_move = rand() % 4 + 1;
 		}
 		break;
@@ -339,7 +372,8 @@ void monster_move(Monster &enemy) {
 	case 3: {
 		if (map[enemy.y + 1][enemy.x] == ' ' or map[enemy.y + 1][enemy.x] == '\'') {
 			enemy.y++;
-		}else {
+		}
+		else {
 			enemy.side_move = rand() % 4 + 1;
 		}
 		break;
@@ -347,7 +381,8 @@ void monster_move(Monster &enemy) {
 	case 4: {
 		if (map[enemy.y][enemy.x - 1] == ' ' or map[enemy.y][enemy.x - 1] == '\'') {
 			enemy.x--;
-		}else {
+		}
+		else {
 			enemy.side_move = rand() % 4 + 1;
 		}
 		break;
@@ -379,44 +414,53 @@ void teleport() {
 		pacman.x = 1;
 		map[10][24] = ' ';
 	}
-
 }
 
 int main() {
 	setlocale(LC_ALL, "ru");
 	srand(time(NULL));
-	cout << "\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\tWelcome to the Pacman console game" << endl;
+	bool people_exit = false;
+	std::cout << "\n\n\n\n\n\n\n\n\n\n\t\t\t\t||===========================================||" << std::endl;
+	std::cout << "\t\t\t\t\tWelcome to the Pacman console game" << std::endl;
+	std::cout << "\t\t\t\t||===========================================||" << std::endl;
 	SetConsoleTextAttribute(hStdOut, BACKGROUND_INTENSITY);
-	cout << "\t\t\t\t\t\tSTART GAME";
-	while (!_kbhit());
-	SetConsoleTextAttribute(hStdOut, COLOR_BACKGROUND);
-	system("cls");
-	setup();
-	while (lose == false and win == false) {
-		draw_timer_score();
-		drawMap();
-		input_move();
-		pacman_move();
-		teleport();
-		enter_monster();
-		monster_move(monsterZ);
-		monster_move(monsterN);
-		monster_move(monsterM);
-		spawn_new_fruit();
-		deth_by_monster();
-		win_by_coin();
+	std::cout << "\t\t\t\t\t\tSTART GAME";
+	while (!people_exit) {
+		while (!_kbhit());
+		SetConsoleTextAttribute(hStdOut, COLOR_BACKGROUND);
 		system("cls");
-	}
-	if (win == true) {
-		system("cls");
-		SetConsoleTextAttribute(hStdOut, COLOR_BACKGROUND | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-		cout << "\n\n\n\n\n\n\n\t\t\t\t\tCONGRATULATIONS!!!" << endl;
-		cout << "\t\t\t\t\t   YOU WIN!!!" << endl;
-	}
-	else if (lose == true) {
-		system("cls");
-		SetConsoleTextAttribute(hStdOut, COLOR_BACKGROUND | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-		cout << "\n\n\n\n\n\n\n\t\t\t\t\t\tYOU LOSE!" << endl;
+		setup();
+		while (lose == false and win == false) {
+			draw_timer_score_life();
+			drawMap();
+			pacman_input_move();
+			pacman_move();
+			teleport();
+			enter_monster();
+			monster_move(monsterZ);
+			monster_move(monsterN);
+			monster_move(monsterM);
+			spawn_new_fruit();
+			deth_by_monster();
+			win_by_coin();
+			system("cls");
+		}
+		if (win == true) {
+			system("cls");
+			SetConsoleTextAttribute(hStdOut, COLOR_BACKGROUND | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			std::cout << "\n\n\n\n\n\n\n\n\n\n\t\t\t\t||===========================================||" << std::endl;
+			std::cout << "\n\n\n\n\n\n\n\t\t\t\t\tCONGRATULATIONS!!!" << std::endl;
+			std::cout << "\t\t\t\t\t   YOU WIN!!!" << std::endl;
+			std::cout << "\t\t\t\t||===========================================||";
+		}
+		else if (lose == true) {
+			system("cls");
+			SetConsoleTextAttribute(hStdOut, COLOR_BACKGROUND | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			std::cout << "\n\n\n\n\n\n\n\n\n\n\t\t\t\t||===========================================||" << std::endl;
+			std::cout << "\t\t\t\t\t\t    YOU LOSE!" << std::endl;
+			std::cout << "\t\t\t\t||===========================================||" << std::endl;
+		}
+		lose = false; win = false;
 	}
 	return 0;
 }
