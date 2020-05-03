@@ -3,6 +3,8 @@
 #define _Pacman_H_
 #include <conio.h>
 #include "Map.h"
+#include "GameClass.h"
+#include "Menu.h"
 #define size_map_y 22
 #define size_map_x 26
 #define KEY_UP 72
@@ -21,6 +23,8 @@ enum Motion {
 class Map;
 class Fruit;
 class Monster;
+class GameClass;
+class Menu;
 
 class Pacman
 {
@@ -38,10 +42,11 @@ public:
 	friend class Map;
 	friend void draw_timer_score_life();
 	friend class Fruit;
+	friend class Menu;
 };
 
 extern Map board;
 extern Monster monsterZ, monsterM, monsterN;
-extern int num_coin;
-extern bool lose;
+extern GameClass game;
+extern Pacman pacman;
 #endif

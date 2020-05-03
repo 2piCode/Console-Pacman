@@ -1,8 +1,8 @@
 #include "Setup.h"
 
 void setup() {
-	lose = false;
-	win = false;
+	game.lose = false;
+	game.win = false;
 
 	pacman.setup_pacman();
 	monsterZ.setup_monster(monsterZ);

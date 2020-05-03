@@ -8,7 +8,7 @@ void Pacman::deth_by_monster() {
 		this->x = 23;
 		this->y = 20;
 	}
-	if (life == 0) lose = true;
+	if (life == 0) game.lose = true;
 }
 
 void Pacman::setup_pacman() {
@@ -18,7 +18,7 @@ void Pacman::setup_pacman() {
 }
 
 void Pacman::input_move() {
-	if (_kbhit()) {
+	while (_kbhit()) {
 		switch (_getch()) {
 		case 'w': {
 			pacman_motion = UP;
@@ -77,16 +77,11 @@ void Pacman::pacman_move() {
 	case UP: {
 		if (board.map[this->y - 1][this->x] == ' ' or board.map[this->y - 1][this->x] == '\'' or board.map[this->y - 1][this->x] == 'Z' or board.map[this->y - 1][this->x] == 'M' or board.map[this->y - 1][this->x] == 'N') {
 			if (board.map[this->y][this->x] == '\'') {
-				score_coin++;
-				num_coin--;
-				board.map[this->y][this->x] = ' ';
+				board.collected_coin_UP();
+			}else {
 				this->y--;
 			}
-			else {
-				this->y--;
-			}
-		}
-		else {
+		}else {
 			pacman_motion = STOP;
 		}
 		break;
@@ -94,16 +89,11 @@ void Pacman::pacman_move() {
 	case RIGHT: {
 		if (board.map[this->y][this->x + 1] == ' ' or board.map[this->y][this->x + 1] == '\'' or board.map[this->y][this->x + 1] == 'Z' or board.map[this->y][this->x + 1] == 'M' or board.map[this->y][this->x + 1] == 'N') {
 			if (board.map[this->y][this->x] == '\'') {
-				score_coin++;
-				num_coin--;
-				board.map[this->y][this->x] = ' ';
+				board.collected_coin_RIGHT();
+			}else {
 				this->x++;
 			}
-			else {
-				this->x++;
-			}
-		}
-		else {
+		}else {
 			pacman_motion = STOP;
 		}
 		break;
@@ -111,10 +101,7 @@ void Pacman::pacman_move() {
 	case DOWN: {
 		if (board.map[this->y + 1][this->x] == ' ' or board.map[this->y + 1][this->x] == '\'' or board.map[this->y + 1][this->x] == 'Z' or board.map[this->y + 1][this->x] == 'M' or board.map[this->y + 1][this->x] == 'N') {
 			if (board.map[this->y][this->x] == '\'') {
-				score_coin++;
-				num_coin--;
-				board.map[this->y][this->x] = ' ';
-				this->y++;
+				board.collected_coin_DOWN();
 			}
 			else {
 				this->y++;
@@ -128,16 +115,11 @@ void Pacman::pacman_move() {
 	case LEFT: {
 		if (board.map[this->y][this->x - 1] == ' ' or board.map[this->y][this->x - 1] == '\'' or board.map[this->y][this->x - 1] == 'Z' or board.map[this->y][this->x - 1] == 'M' or board.map[this->y][this->x - 1] == 'N') {
 			if (board.map[this->y][this->x] == '\'') {
-				score_coin++;
-				num_coin--;
-				board.map[this->y][this->x] = ' ';
+				board.collected_coin_LEFT();
+			}else {
 				this->x--;
 			}
-			else {
-				this->x--;
-			}
-		}
-		else {
+		}else {
 			pacman_motion = STOP;
 		}
 		break;

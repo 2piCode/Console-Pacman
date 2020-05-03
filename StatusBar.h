@@ -4,11 +4,10 @@
 #include <iostream>
 #include "Pacman.h"
 #include <windows.h>
+#include "GameClass.h"
 
 void draw_timer_score_life();
 
-extern int second;
-extern int minute;
-extern int hour;
+extern GameClass game;
 extern Pacman pacman;
 extern HANDLE hStdOut;

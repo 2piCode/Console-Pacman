@@ -3,10 +3,15 @@
 #include <time.h>
 #include <iostream>
 #include "Map.h"
+#include "GameClass.h"
+#include "Menu.h"
 #define size_map_y 22
 #define size_map_x 26
 
 class Map;
+class GameClass;
+class Pacman;
+class Menu;
 
 class Monster
 {
@@ -18,13 +23,17 @@ public:
 	void setup_monster(Monster& enemy);
 	void setup_enter_monster_time();
 	void monster_move();
-	void enter_monster();
+	void monster_enter();
+	void teleport();
+	void all_monster_enter();
+	void all_monster_move();
+	void all_monster_teleport();
 	friend class Map;
 	friend class Pacman;
-};
+	friend class Menu;
 
+};
 extern Monster monsterZ;
 extern Monster monsterN;
 extern Monster monsterM;
-extern int second;
-extern int minute;
+extern GameClass game;

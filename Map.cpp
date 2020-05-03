@@ -1,6 +1,22 @@
 #include "Map.h"
 
+BOOL ShowConsoleCursor(BOOL bShow)
+{
+	CONSOLE_CURSOR_INFO cci;
+	HANDLE hStdOut;
+	hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (hStdOut == INVALID_HANDLE_VALUE)
+		return FALSE;
+	if (!GetConsoleCursorInfo(hStdOut, &cci))
+		return FALSE;
+	cci.bVisible = bShow;
+	if (!SetConsoleCursorInfo(hStdOut, &cci))
+		return FALSE;
+	return TRUE;
+}
+
 void Map::draw_map() {
+	ShowConsoleCursor(FALSE);
 	for (size_t i = 0; i < size_map_y; i++) {
 		for (size_t j = 0; j < size_map_x; j++) {
 			if (map[i][j] == '|') {
@@ -47,23 +63,37 @@ void Map::draw_map() {
 	}
 }
 
-void Map::collected_coin() {
-	for (size_t i = 0; i < size_map_y; i++) {
-		for (size_t j = 0; j < size_map_x; j++) {
-			if (pacman.y == i and pacman.x == j and this->map[i][j] == '\'') {
-				pacman.score_coin++;
-				num_coin--;
-				this->map[pacman.y][pacman.x] = ' ';
-				pacman.y;
-			}
-		}
-	}
+void Map::collected_coin_UP() {
+	pacman.score_coin++;
+	game.num_coin--;
+	this->map[pacman.y][pacman.x] = ' ';
+	pacman.y--;
+}
+
+void Map::collected_coin_DOWN() {
+	pacman.score_coin++;
+	game.num_coin--;
+	this->map[pacman.y][pacman.x] = ' ';
+	pacman.y++;
+}
+
+void Map::collected_coin_LEFT() {
+	pacman.score_coin++;
+	game.num_coin--;
+	this->map[pacman.y][pacman.x] = ' ';
+	pacman.x--;
+}
+
+void Map::collected_coin_RIGHT() {
+	pacman.score_coin++;
+	game.num_coin--;
+	this->map[pacman.y][pacman.x] = ' ';
+	pacman.x++;
 }
 
 
-/*
-void update_map(char map[size_map_y][size_map_x]) {
-	map[size_map_y][size_map_x]{
+void Map::update_map() {
+	char newMap[size_map_y][size_map_x]{
 	"|-----------------------|",//0					
 	"|'''''''''''|'''''''''''|",//1					
 	"|'|||'|||||'|'|||||'|||'|",//2					
@@ -86,5 +116,10 @@ void update_map(char map[size_map_y][size_map_x]) {
 	"|'--------''|''--------'|",//19		
 	"|'''''''''''''''''''''' |",//20		
 	"|-----------------------|",//21	
+	};
+	for(size_t i = 0; i < size_map_y; i++) {
+		for (size_t j = 0; j < size_map_x; j++) {
+			this->map[i][j] = newMap[i][j];
+		}
 	}
-}*/
+}
