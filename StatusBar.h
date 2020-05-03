@@ -10,6 +10,5 @@ void draw_timer_score_life();
 extern int second;
 extern int minute;
 extern int hour;
-extern int life;
 extern Pacman pacman;
 extern HANDLE hStdOut;

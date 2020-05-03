@@ -10,7 +10,7 @@
 #include "Fruit.h"
 #include "Map.h"
 #include "StatusBar.h"
-using namespace std;
+#include "Setup.h"
 #define size_map_y 22
 #define size_map_x 26
 
@@ -18,56 +18,17 @@ HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
 bool lose, win;
 
-int second = 0, hour = 0, minute = 0, life = 3;
+int second = 0, hour = 0, minute = 0;
 
 int num_coin = 202;
 
-char map[size_map_y][size_map_x]{
-"|-----------------------|",//0					
-"|'''''''''''|'''''''''''|",//1					
-"|'|||'|||||'|'|||||'|||'|",//2					
-"|'|||'|||||'|'|||||'|||'|",//3					
-"|'''''''''''''''''''''''|",//4					
-"|'|||'|'---------'|'|||'|",//5					
-"|'''''|'''''|'''''|'''''|",//6					
-"|----'|---  |  ---|'-----",//7					
-"    |'|           |'|   ",//8					
-"-----'|  |-----|  |'-----",//9					
-"     '   |     |   '     ",//10				
-"-----'|  -------  |'-----",//11				
-"    |'|           |'|    ",//12			
-"-----'|  -------  |'-----",//13			
-"|'''''''''''|'''''''''''|",//14		
-"|'--|'-----'|'-----'---'|",//15			
-"|'''|'''''''''''''''|'''|",//16		
-"|--'|'|''-------''|'|'--|",//17			
-"|'''''|'''''|'''''|'''''|",//18		
-"|'--------''|''--------'|",//19		
-"|'''''''''''''''''''''' |",//20		
-"|-----------------------|",//21		
-};
-
 Pacman pacman;
 Fruit fruit;
-Monster monsterZ, monsterN, monsterM, allMonster;
-
+Monster monsterZ, monsterN, monsterM;
+Map board;
 
 void win_by_coin() {
 	if (num_coin == 0) win = true;
-}
-
-void setup() {
-	lose = false;
-	win = false;
-
-	pacman.setup_pacman();
-	monsterZ.setup_monster(monsterZ);
-	monsterN.setup_monster(monsterN);
-	monsterM.setup_monster(monsterM);
-	fruit.setup_spawn_fruit();
-	monsterZ.setup_enter_monster_time();
-	monsterN.setup_enter_monster_time();
-	monsterM.setup_enter_monster_time();
 }
 
 int main() {
@@ -80,13 +41,15 @@ int main() {
 	SetConsoleTextAttribute(hStdOut, BACKGROUND_INTENSITY);
 	std::cout << "\t\t\t\t\t\tSTART GAME";
 	while (!people_exit) {
+		//update_map(map);
 		while (!_kbhit());
 		SetConsoleTextAttribute(hStdOut, COLOR_BACKGROUND);
 		system("cls");
 		setup();
 		while (lose == false and win == false) {
 			draw_timer_score_life();
-			draw_map();
+			board.draw_map();
+			board.collected_coin();
 			pacman.input_move();
 			pacman.pacman_move();
 			pacman.teleport();
@@ -96,8 +59,8 @@ int main() {
 			monsterZ.monster_move();
 			monsterN.monster_move();
 			monsterM.monster_move();
-			//fruit.spawn_new_fruit();
-			//pacman.deth_by_monster();
+			fruit.spawn_new_fruit();
+			pacman.deth_by_monster();
 			win_by_coin();
 			system("cls");
 		}
@@ -120,3 +83,5 @@ int main() {
 	}
 	return 0;
 }
+
+

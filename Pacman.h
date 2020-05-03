@@ -2,6 +2,7 @@
 #ifndef _Pacman_H_
 #define _Pacman_H_
 #include <conio.h>
+#include "Map.h"
 #define size_map_y 22
 #define size_map_x 26
 #define KEY_UP 72
@@ -17,22 +18,30 @@ enum Motion {
 	DOWN
 };
 
-class Pacman {
+class Map;
+class Fruit;
+class Monster;
+
+class Pacman
+{
 	int x;
 	int y;
+	int score_coin = 0;
+	int life = 3;
 	Motion pacman_motion;
 public:
 	void input_move();
-//	void deth_by_monster();
+	void deth_by_monster();
 	void setup_pacman();
 	void pacman_move();
 	void teleport();
-	friend void spawn_new_fruit();
-	friend void draw_map();
+	friend class Map;
+	friend void draw_timer_score_life();
+	friend class Fruit;
 };
 
-extern char map[size_map_y][size_map_x];
-
+extern Map board;
+extern Monster monsterZ, monsterM, monsterN;
+extern int num_coin;
+extern bool lose;
 #endif
-
-

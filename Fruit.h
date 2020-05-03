@@ -1,7 +1,10 @@
 #pragma once
 #include <iostream>
+#include "Map.h"
 #define size_map_y 22
 #define size_map_x 26
+
+class Map;
 
 class Fruit
 {
@@ -9,8 +12,8 @@ class Fruit
 	int y;
 public:
 	void setup_spawn_fruit();
-	//void spawn_new_fruit();
-	friend void draw_map();
+	void spawn_new_fruit();
+	friend class Map;
 };
 
-extern char map[size_map_y][size_map_x];
+extern Map board;

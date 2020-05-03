@@ -31,26 +31,26 @@ void Monster::enter_monster() {
 		this->x = 12;
 		this->y = 8;
 		this->side_move = std::rand() % 4 + 1;
-		map[8][11] = ' ';
+		board.map[8][11] = ' ';
 	}
 	else if (stopwatch_enter_monster_sec == second + minute * 60 - 10 and this->y == 10 and this->x == 12) {
 		this->x = 12;
 		this->y = 8;
 		this->side_move = std::rand() % 4 + 1;
-		map[8][11] = ' ';
+		board.map[8][11] = ' ';
 	}
 	else if (stopwatch_enter_monster_sec == second + minute * 60 - 20 and this->y == 10 and this->x == 13) {
 		this->x = 12;
 		this->y = 8;
 		this->side_move = std::rand() % 4 + 1;
-		map[8][11] = ' ';
+		board.map[8][11] = ' ';
 	}
 }
 
 void Monster::monster_move() {
 	switch (this->side_move) {
 	case 1: {
-		if (map[this->y - 1][this->x] == ' ' or map[this->y - 1][this->x] == '\'') {
+		if (board.map[this->y - 1][this->x] == ' ' or board.map[this->y - 1][this->x] == '\'') {
 			this->y--;
 
 		}
@@ -60,7 +60,7 @@ void Monster::monster_move() {
 		break;
 	}
 	case 2: {
-		if (map[this->y][this->x + 1] == ' ' or map[this->y][this->x + 1] == '\'') {
+		if (board.map[this->y][this->x + 1] == ' ' or board.map[this->y][this->x + 1] == '\'') {
 			this->x++;
 		}
 		else {
@@ -69,7 +69,7 @@ void Monster::monster_move() {
 		break;
 	}
 	case 3: {
-		if (map[this->y + 1][this->x] == ' ' or map[this->y + 1][this->x] == '\'') {
+		if (board.map[this->y + 1][this->x] == ' ' or board.map[this->y + 1][this->x] == '\'') {
 			this->y++;
 		}
 		else {
@@ -78,7 +78,7 @@ void Monster::monster_move() {
 		break;
 	}
 	case 4: {
-		if (map[this->y][this->x - 1] == ' ' or map[this->y][this->x - 1] == '\'') {
+		if (board.map[this->y][this->x - 1] == ' ' or board.map[this->y][this->x - 1] == '\'') {
 			this->x--;
 		}
 		else {

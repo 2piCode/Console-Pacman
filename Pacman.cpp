@@ -1,15 +1,15 @@
 #include "Pacman.h"
 
-/*void Pacman::deth_by_monster() {
-	if (pacman.y == monsterZ.y and pacman.x == monsterZ.x or
-		pacman.y == monsterN.y and pacman.x == monsterN.x or
-		pacman.y == monsterM.y and pacman.x == monsterM.x) {
+void Pacman::deth_by_monster() {
+	if (this->y == monsterZ.y and this->x == monsterZ.x or
+		this->y == monsterN.y and this->x == monsterN.x or
+		this->y == monsterM.y and this->x == monsterM.x) {
 		life--;
-		pacman.x = 23;
-		pacman.y = 20;
+		this->x = 23;
+		this->y = 20;
 	}
 	if (life == 0) lose = true;
-}*/
+}
 
 void Pacman::setup_pacman() {
 	pacman_motion = STOP;
@@ -75,11 +75,11 @@ void Pacman::input_move() {
 void Pacman::pacman_move() {
 	switch (pacman_motion) {
 	case UP: {
-		if (map[this->y - 1][this->x] == ' ' or map[this->y - 1][this->x] == '\'' or map[this->y - 1][this->x] == 'Z' or map[this->y - 1][this->x] == 'M' or map[this->y - 1][this->x] == 'N') {
-			if (map[this->y][this->x] == '\'') {
-				//score++;
-				//num_coin--;
-				map[this->y][this->x] = ' ';
+		if (board.map[this->y - 1][this->x] == ' ' or board.map[this->y - 1][this->x] == '\'' or board.map[this->y - 1][this->x] == 'Z' or board.map[this->y - 1][this->x] == 'M' or board.map[this->y - 1][this->x] == 'N') {
+			if (board.map[this->y][this->x] == '\'') {
+				score_coin++;
+				num_coin--;
+				board.map[this->y][this->x] = ' ';
 				this->y--;
 			}
 			else {
@@ -92,11 +92,11 @@ void Pacman::pacman_move() {
 		break;
 	}
 	case RIGHT: {
-		if (map[this->y][this->x + 1] == ' ' or map[this->y][this->x + 1] == '\'' or map[this->y][this->x + 1] == 'Z' or map[this->y][this->x + 1] == 'M' or map[this->y][this->x + 1] == 'N') {
-			if (map[this->y][this->x] == '\'') {
-				//score++;
-				//num_coin--;
-				map[this->y][this->x] = ' ';
+		if (board.map[this->y][this->x + 1] == ' ' or board.map[this->y][this->x + 1] == '\'' or board.map[this->y][this->x + 1] == 'Z' or board.map[this->y][this->x + 1] == 'M' or board.map[this->y][this->x + 1] == 'N') {
+			if (board.map[this->y][this->x] == '\'') {
+				score_coin++;
+				num_coin--;
+				board.map[this->y][this->x] = ' ';
 				this->x++;
 			}
 			else {
@@ -109,11 +109,11 @@ void Pacman::pacman_move() {
 		break;
 	}
 	case DOWN: {
-		if (map[this->y + 1][this->x] == ' ' or map[this->y + 1][this->x] == '\'' or map[this->y + 1][this->x] == 'Z' or map[this->y + 1][this->x] == 'M' or map[this->y + 1][this->x] == 'N') {
-			if (map[this->y][this->x] == '\'') {
-				//score++;
-				//num_coin--;
-				map[this->y][this->x] = ' ';
+		if (board.map[this->y + 1][this->x] == ' ' or board.map[this->y + 1][this->x] == '\'' or board.map[this->y + 1][this->x] == 'Z' or board.map[this->y + 1][this->x] == 'M' or board.map[this->y + 1][this->x] == 'N') {
+			if (board.map[this->y][this->x] == '\'') {
+				score_coin++;
+				num_coin--;
+				board.map[this->y][this->x] = ' ';
 				this->y++;
 			}
 			else {
@@ -126,11 +126,11 @@ void Pacman::pacman_move() {
 		break;
 	}
 	case LEFT: {
-		if (map[this->y][this->x - 1] == ' ' or map[this->y][this->x - 1] == '\'' or map[this->y][this->x - 1] == 'Z' or map[this->y][this->x - 1] == 'M' or map[this->y][this->x - 1] == 'N') {
-			if (map[this->y][this->x] == '\'') {
-				//score++;
-				//num_coin--;
-				map[this->y][this->x] = ' ';
+		if (board.map[this->y][this->x - 1] == ' ' or board.map[this->y][this->x - 1] == '\'' or board.map[this->y][this->x - 1] == 'Z' or board.map[this->y][this->x - 1] == 'M' or board.map[this->y][this->x - 1] == 'N') {
+			if (board.map[this->y][this->x] == '\'') {
+				score_coin++;
+				num_coin--;
+				board.map[this->y][this->x] = ' ';
 				this->x--;
 			}
 			else {
@@ -148,10 +148,10 @@ void Pacman::pacman_move() {
 void Pacman::teleport() {
 	if (this->x == 0 and this->y == 10) {
 		this->x = 24;
-		map[10][0] = ' ';
+		board.map[10][0] = ' ';
 	}
 	else if (this->x == 24 and this->y == 10) {
 		this->x = 1;
-		map[10][24] = ' ';
+		board.map[10][24] = ' ';
 	}
 }

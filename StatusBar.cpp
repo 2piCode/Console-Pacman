@@ -12,5 +12,5 @@ void draw_timer_score_life() {
 	SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 	std::cout << "\tCollected " << pacman.score_coin << " of 202" << "\tLeft: " << num_coin;
 	SetConsoleTextAttribute(hStdOut, FOREGROUND_RED);
-	std::cout << "\tLife: " << life << std::endl;
+	std::cout << "\tLife: " << pacman.life << std::endl;
 }
