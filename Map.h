@@ -50,6 +50,8 @@ public:
 	friend class Fruit;
 };
 
+BOOL ShowConsoleCursor(BOOL bShow);
+
 extern HANDLE hStdOut;
 extern Monster monsterZ;
 extern Monster monsterN;

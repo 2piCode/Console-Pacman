@@ -91,7 +91,6 @@ void Map::collected_coin_RIGHT() {
 	pacman.x++;
 }
 
-
 void Map::update_map() {
 	char newMap[size_map_y][size_map_x]{
 	"|-----------------------|",//0					

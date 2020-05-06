@@ -29,6 +29,7 @@ int main() {
 	setlocale(LC_ALL, "ru");
 	srand(time(NULL));
 	//goto chiter;
+	ShowConsoleCursor(FALSE);
 	SetConsoleTextAttribute(hStdOut, COLOR_BACKGROUND | COLOR_3DFACE);
 	menu.draw_menu();
 	menu.check_active();

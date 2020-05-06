@@ -84,12 +84,15 @@ void Menu::check_active() {
 		monsterZ.side_move = 5;
 		monsterN.side_move = 5;
 		monsterM.side_move = 5;
+		system("cls");
 	}
 	if (this->active == 2) {
+		system("cls");
 		game.goodbye();
 		exit(1);
 	}
 	while (this->active == 1) {
+		system("cls");
 		while (!GetAsyncKeyState(VK_ESCAPE)) game.author();
 		system("cls");
 		menu.draw_menu();
